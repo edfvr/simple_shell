@@ -1,106 +1,97 @@
 #include "shell.h"
 
 /**
- * cd_b - Changes the current working directory to the parameter passed to cd.
- * if no parameter is passed it will change directory to HOME.
- * @line: A string representing the input from the user.
+ * _myexit - exits the shell
+ * @info: Structure containing potential arguments. Used to maintain
+ * constant function prototype.
+ * Return: exits with a given exit status
+ * (0) if info.argv[0] != "exit"
  */
-void cd_b(char *line)
+int _myexit(info_t *info)
 {
-	int index;
-	int token_count;
-	char **param_array;
-	const char *delim = "\n\t ";
+	int exitcheck;
 
-	token_count = 0;
-	param_array = token_interface(line, delim, token_count);
-	if (param_array[0] == NULL)
+	if (info->argv[1])
 	{
-		single_free(2, param_array, line);
-		return;
-	}
-	if (param_array[1] == NULL)
-	{
-		index = find_path("HOME");
-		chdir((environ[index]) + 5);
-	}
-	else if (_strcmp(param_array[1], "-") == 0)
-		print_str(param_array[1], 0);
-
-	else
-		chdir(param_array[1]);
-	double_free(param_array);
-}
-
-/**
- * env_b - Prints all the environmental variables in the current shell.
- * @line: A string representing the input from the user.
- */
-void env_b(__attribute__((unused))char *line)
-{
-	int i;
-	int j;
-
-	for (i = 0; environ[i] != NULL; i++)
-	{
-		for (j = 0; environ[i][j] != '\0'; j++)
-			write(STDOUT_FILENO, &environ[i][j], 1);
-		write(STDOUT_FILENO, "\n", 1);
-	}
-}
-
-/**
- * exit_b - Exits the shell. After freeing allocated resources.
- * @line: A string representing the input from the user.
- */
-void exit_b(char *line)
-{
-	free(line);
-	print_str("\n", 1);
-	exit(1);
-}
-
-/**
- * check_built_ins - Finds the right function needed for execution.
- * @str: The name of the function that is needed.
- * Return: Upon sucess a pointer to a void function. Otherwise NULL.
- */
-void (*check_built_ins(char *str))(char *str)
-{
-	int i;
-
-	builtin_t buildin[] = {
-		{"exit", exit_b},
-		{"env", env_b},
-		{"cd", cd_b},
-		{NULL, NULL}
-	};
-
-	for (i = 0; buildin[i].built != NULL; i++)
-	{
-		if (_strcmp(str, buildin[i].built) == 0)
+		exitcheck = _erratoi(info->argv[1]);
+		if (exitcheck == -1)
 		{
-			return (buildin[i].f);
+			info->status = 2;
+			print_error(info, "Illegal number: ");
+			_eputs(info->argv[1]);
+			_eputchar('\n');
+			return (1);
 		}
+		info->err_num = _erratoi(info->argv[1]);
+		return (-2);
 	}
-	return (NULL);
+	info->err_num = -1;
+	return (-2);
 }
 
 /**
- * built_in - Checks for builtin functions.
- * @command: An array of all the arguments passed to the shell.
- * @line: A string representing the input from the user.
- * Return: If function is found 0. Otherwise -1.
+ * _mycd - changes the current directory of the process
+ * @info: Structure containing potential arguments. Used to maintain
+ * constant function prototype.
+ * Return: Always 0
  */
-int built_in(char **command, char *line)
+int _mycd(info_t *info)
 {
-	void (*build)(char *);
+	char *s, *dir, buffer[1024];
+	int chdir_ret;
 
-	build = check_built_ins(command[0]);
-	if (build == NULL)
-		return (-1);
-	if (_strcmp("exit", command[0]) == 0)
-		double_free(command);
-	build(line);
+	s = getcwd(buffer, 1024);
+	if (!s)
+		_puts("TODO: >>getcwd failure emsg here<<\n");
+	if (!info->argv[1])
+	{
+		dir = _getenv(info, "HOME=");
+		if (!dir)
+			chdir_ret =
+				chdir((dir = _getenv(info, "PWD=")) ? dir : "/");
+		else
+			chdir_ret = chdir(dir);
+	}
+	else if (_strcmp(info->argv[1], "-") == 0)
+	{
+		if (!_getenv(info, "OLDPWD="))
+		{
+			_puts(s);
+			_putchar('\n');
+			return (1);
+		}
+		_puts(_getenv(info, "OLDPWD=")), _putchar('\n');
+		chdir_ret =
+			chdir((dir = _getenv(info, "OLDPWD=")) ? dir : "/");
+	}
+	else
+		chdir_ret = chdir(info->argv[1]);
+	if (chdir_ret == -1)
+	{
+		print_error(info, "can't cd to ");
+		_eputs(info->argv[1]), _eputchar('\n');
+	}
+	else
+	{
+		_setenv(info, "OLDPWD", _getenv(info, "PWD="));
+		_setenv(info, "PWD", getcwd(buffer, 1024));
+	}
+	return (0);
+}
+
+/**
+ * _myhelp - changes the current directory of the process
+ * @info: Structure containing potential arguments. Used to maintain
+ * constant function prototype.
+ *  Return: Always 0
+ */
+int _myhelp(info_t *info)
+{
+	char **arg_array;
+
+	arg_array = info->argv;
+	_puts("help call works. Function not yet implemented \n");
+	if (0)
+		_puts(*arg_array);
 	return (0);
 }
