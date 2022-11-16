@@ -1,98 +1,71 @@
 #include "shell.h"
 
 /**
- * _strcmp - compares two strings
- * @s1: First string
- * @s2: Second string
- * Return: 0 if strings match. -1 if Otherwise.
+ * _strlen - returns the length of a string
+ * @s: the striing whose length to check
+ * Return: integer length of string
+ */
+int _strlen(char *s)
+{
+	int i = 0;
+
+	if (!s)
+		return (0);
+
+	while (*s++)
+		i++;
+	return (i);
+}
+
+/**
+ * _strcmp - performs lexicogarphic comparison of two strangs.
+ * @s1: the first strang
+ * @s2: the second strang
+ * Return: negative if s1 < s2, positive if s1 > s2, zero if s1 == s2
  */
 int _strcmp(char *s1, char *s2)
 {
-	int i;
-
-	if (_strlen(s1) != _strlen(s2))
-		return (-1);
-	for (i = 0; s1[i] != '\0'; i++)
+	while (*s1 && *s2)
 	{
-		if (s1[i] != s2[i])
-			return (-1);
+		if (*s1 != *s2)
+			return (*s1 - *s2);
+		s1++;
+		s2++;
 	}
-	return (0);
+	if (*s1 == *s2)
+		return (0);
+	else
+		return (*s1 < *s2 ? -1 : 1);
 }
 
 /**
- * _strdup - create a copy of a string
- * @src: Contains the original string
- * Return: Gives back the copy of string
+ * starts_with - checks if needle starts with haystack
+ * @haystack: string to search
+ * @needle: the substring to find
+ * Return: address of next char of haystack or NULL
  */
-char *_strdup(char *src)
+char *starts_with(const char *haystack, const char *needle)
 {
-	int i;
-	int len;
-	char *dest;
-
-	len = _strlen(src);
-	dest = malloc(sizeof(char) * (len + 1));
-
-	for (i = 0; src[i] != '\0'; i++)
-		dest[i] = src[i];
-	dest[i] = '\0';
-	return (dest);
+	while (*needle)
+		if (*needle++ != *haystack++)
+			return (NULL);
+	return ((char *)haystack);
 }
 
 /**
- * print_str - Prints a string character by character.
- * @str: String to be printed. If the string is NULL it will print (null)
- * @new_line: If integer is 0 a new line will be printed. Otherwise a new line
- * will not be printed.
+ * _strcat - concatenates two strings
+ * @dest: the destination buffer
+ * @src: the source buffer
+ * Return: pointer to destination buffer
  */
-void print_str(char *str, int new_line)
+char *_strcat(char *dest, char *src)
 {
-	int i;
+	char *ptr = dest;
 
-	if (str == NULL)
-		str = "(null)";
-	for (i = 0; str[i] != '\0'; i++)
-		write(STDOUT_FILENO, &str[i], 1);
-	if (new_line == 0)
-		write(STDOUT_FILENO, "\n", 1);
-}
-
-/**
- * _putchar - Writes a character to stdout
- * @c: Character that will be written to stdout
- * Return: Upon success how many characters were written.
- */
-int _putchar(char c)
-{
-	return (write(1, &c, 1));
-}
-
-/**
- * print_number - Prints an unsigned number
- * @n: unsigned integer to be printed
- * Return: The amount of numbers printed
- */
-int print_number(int n)
-{
-	int div;
-	int len;
-	unsigned int num;
-
-	div = 1;
-	len = 0;
-
-	num = n;
-
-	for (; num / div > 9; )
-		div *= 10;
-
-	for (; div != 0; )
-	{
-		len += _putchar('0' + num / div);
-		num %= div;
-		div /= 10;
-	}
-
-	return (len);
+	while (*dest)
+		dest++;
+	while (*src)
+		*dest++ = *src++;
+	*dest = *src;
+	return (ptr);
 }
