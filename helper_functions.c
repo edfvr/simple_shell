@@ -1,85 +1,73 @@
 #include "shell.h"
 
 /**
- * _strlen - returns the length of a string.
- * @str : the string
- * Return: the length of the string
+ * interactive - retturns true if shell is interactive mode
+ * @info: struct address
+ * Return: 1 if interactive mode, 0 otherwise
  */
-int _strlen(char *str)
+int interactive(info_t *info)
 {
-	int length = 0;
+	return (isatty(STDIN_FILENO) && info->readfd <= 2);
+}
 
-	if (str == NULL)
-	{
+/**
+ * is_delim - checks if character is a delimeter
+ * @c: the char to check
+ * @delim: the delimeter string
+ * Return: 1 if true, 0 if false
+ */
+int is_delim(char c, char *delim)
+{
+	while (*delim)
+		if (*delim++ == c)
+			return (1);
+	return (0);
+}
+
+/**
+ *_isalpha - checks for alphabetic character
+ *@c: The character to input
+ *Return: 1 if c is alphabetic, 0 otherwise
+ */
+
+int _isalpha(int c)
+{
+	if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
+		return (1);
+	else
 		return (0);
-	}
+}
 
-	while (str[length] != '\0')
+/**
+ *_atoi - converts a string to an integer
+ *@s: the string to be converted
+ *Return: 0 if no numbers in string, converted number otherwise
+ */
+
+int _atoi(char *s)
+{
+	int i, sign = 1, flag = 0, output;
+	unsigned int result = 0;
+
+	for (i = 0;  s[i] != '\0' && flag != 2; i++)
 	{
-		length++;
+		if (s[i] == '-')
+			sign *= -1;
+
+		if (s[i] >= '0' && s[i] <= '9')
+		{
+			flag = 1;
+			result *= 10;
+			result += (s[i] - '0');
+		}
+		else if (flag == 1)
+			flag = 2;
 	}
-}
 
-/**
- * double_free - Free double pointer variables.
- * @to_be_freed: The address of the elements that need to be freed.
- */
-void double_free(char **to_be_freed)
-{
-	int index;
+	if (sign == -1)
+		output = -result;
+	else
+		output = result;
 
-	for (index = 0; to_be_freed[index] != NULL; index++)
-		free(to_be_freed[index]);
-	free(to_be_freed);
-}
-
-/**
- * single_free - Will free a n amount of pointers to a string.
- * @n: The number of pointers to free.
- */
-void single_free(int n, ...)
-{
-	int i;
-	char *str;
-	va_list a_list;
-
-	va_start(a_list, n);
-	for (i = 0; i < n; i++)
-	{
-		str = va_arg(a_list, char*);
-		if (str == NULL)
-			str = "(nil)";
-		free(str);
-	}
-	va_end(a_list);
-}
-
-/**
- * error_printing - Prints a message error when a comand is not found.
- * @count: A counter keeping track of the number of commands run on the shell.
- * @av: The name of the program running the shell.
- * @command: The specific command not being found.
- */
-void error_printing(char *av, int count, char *command)
-{
-	print_str(av, 1);
-	print_str(": ", 1);
-	print_number(count);
-	print_str(": ", 1);
-	print_str(command, 1);
-}
-
-/**
- * exec_error - Prints exec errors.
- * @av: The name of the program running the shell.
- * @count: Keeps track of how many commands have been entered.
- * @tmp_command: The command that filed.
- */
-
-void exec_error(char *av, int count, char *tmp_command)
-{
-	error_printing(av, count, tmp_command);
-	print_str(": ", 1);
-	perror("");
-	exit(1);
+	return (output);
 }
